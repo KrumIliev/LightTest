@@ -2,53 +2,57 @@ package com.kdi.light.box.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.kdi.light.box.LightGame;
 import com.kdi.light.box.entities.Player;
+import com.kdi.light.box.utils.WorldCreator;
 
-import box2dLight.PointLight;
 import box2dLight.RayHandler;
 
 public class PlayScreen implements Screen {
 
+    private LightGame game;
+
     private OrthographicCamera gameCamera;
     private Viewport gameViewPort;
 
-    private World world;
+    public World world;
     private Box2DDebugRenderer b2dr;
     private Player player;
 
     private RayHandler rayHandler;
-    private PointLight pointLight;
 
-    public PlayScreen() {
+    public TmxMapLoader mapLoader;
+    public TiledMap map;
+    private OrthogonalTiledMapRenderer mapRenderer;
+
+    public PlayScreen(LightGame game) {
+        this.game = game;
         gameCamera = new OrthographicCamera();
         gameViewPort = new FitViewport(LightGame.WIDTH / LightGame.PPM, LightGame.HEIGHT / LightGame.PPM, gameCamera);
-        gameCamera.position.set(gameViewPort.getWorldWidth(), gameViewPort.getWorldHeight(), 0);
-        world = new World(new Vector2(0, 0), true);
+        gameCamera.position.set(gameViewPort.getWorldWidth() / 2, gameViewPort.getWorldHeight() / 2 , 0);
+        world = new World(new Vector2(0, -10), true);
         b2dr = new Box2DDebugRenderer();
 
-        player = new Player(world);
-        createBox(player.body.getPosition().x - 3, player.body.getPosition().y, 20 / LightGame.PPM, 100 / LightGame.PPM);
-        createBox(player.body.getPosition().x + 3, player.body.getPosition().y, 20 / LightGame.PPM, 100 / LightGame.PPM);
-        createBox(player.body.getPosition().x, player.body.getPosition().y + 3, 100 / LightGame.PPM, 20 / LightGame.PPM);
-        createBox(player.body.getPosition().x, player.body.getPosition().y - 3, 100 / LightGame.PPM, 20 / LightGame.PPM);
-
         rayHandler = new RayHandler(world);
-        rayHandler.setAmbientLight(0.5f);
-        pointLight = new PointLight(rayHandler, 100, Color.WHITE, 3 / LightGame.PPM, 0, 0);
-        //pointLight.attachToBody(player.body);
+        rayHandler.setAmbientLight(1f);
+        rayHandler.setShadows(true);
+
+        mapLoader = new TmxMapLoader();
+        map = mapLoader.load("level1.tmx");
+        mapRenderer = new OrthogonalTiledMapRenderer(map, 1 / LightGame.PPM);
+
+        new WorldCreator(this);
+        player = new Player(world, rayHandler);
     }
 
     public void update(float dt) {
@@ -56,12 +60,14 @@ public class PlayScreen implements Screen {
 
         rayHandler.update();
 
-        player.handleInput(dt);
+        player.handleInput();
+        player.update();
 
         gameCamera.position.set(player.body.getPosition().x, player.body.getPosition().y, 0);
         gameCamera.update();
 
-        rayHandler.setCombinedMatrix(gameCamera.combined.cpy().scl(LightGame.PPM));
+        rayHandler.setCombinedMatrix(gameCamera);
+        mapRenderer.setView(gameCamera);
     }
 
     @Override
@@ -71,8 +77,17 @@ public class PlayScreen implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        b2dr.render(world, gameCamera.combined);
+        mapRenderer.render();
+
+        //b2dr.render(world, gameCamera.combined);
         rayHandler.render();
+
+        game.batch.setProjectionMatrix(gameCamera.combined);
+        game.batch.begin();
+        player.draw(game.batch);
+        game.batch.end();
+
+
     }
 
     @Override
@@ -105,17 +120,5 @@ public class PlayScreen implements Screen {
         world.dispose();
         b2dr.dispose();
         rayHandler.dispose();
-    }
-
-    private void createBox(float x, float y, float width, float height) {
-        BodyDef bdef = new BodyDef();
-        bdef.position.set(x, y);
-        bdef.type = BodyDef.BodyType.StaticBody;
-        Body body = world.createBody(bdef);
-        PolygonShape shape = new PolygonShape();
-        shape.setAsBox(width, height);
-        FixtureDef fdef = new FixtureDef();
-        fdef.shape = shape;
-        body.createFixture(fdef);
     }
 }
