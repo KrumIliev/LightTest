@@ -31,18 +31,8 @@ public class Background {
     }
 
     public void update(float dt) {
-        if (player.body.getLinearVelocity().x > 0) {
-            x += (-30 * player.body.getLinearVelocity().x / LightGame.PPM) * dt;
-        }
-        if (player.body.getLinearVelocity().x < 0) {
-            x += (30 * player.body.getLinearVelocity().x / LightGame.PPM) * dt;
-        }
-        if (player.body.getLinearVelocity().y > 0) {
-            y += (-30 * player.body.getLinearVelocity().y / LightGame.PPM) * dt;
-        }
-        if (player.body.getLinearVelocity().y < 0) {
-            y += (30 * player.body.getLinearVelocity().y / LightGame.PPM) * dt;
-        }
+        x -= (40 * player.body.getLinearVelocity().x / LightGame.PPM) * dt;
+        y -= (40 * player.body.getLinearVelocity().y / LightGame.PPM) * dt;
 
         if (x + image.getRegionWidth() / LightGame.PPM < 0) x = 0;
         if (x - image.getRegionWidth() / LightGame.PPM > 0) x = 0;
