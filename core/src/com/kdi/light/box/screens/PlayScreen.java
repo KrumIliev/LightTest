@@ -4,6 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
@@ -14,6 +16,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.kdi.light.box.LightGame;
 import com.kdi.light.box.entities.Player;
+import com.kdi.light.box.utils.Background;
 import com.kdi.light.box.utils.WorldCreator;
 
 import box2dLight.RayHandler;
@@ -28,6 +31,7 @@ public class PlayScreen implements Screen {
     public World world;
     private Box2DDebugRenderer b2dr;
     private Player player;
+    private Background background;
 
     private RayHandler rayHandler;
 
@@ -44,7 +48,7 @@ public class PlayScreen implements Screen {
         b2dr = new Box2DDebugRenderer();
 
         rayHandler = new RayHandler(world);
-        rayHandler.setAmbientLight(1f);
+        rayHandler.setAmbientLight(0.4f);
         rayHandler.setShadows(true);
 
         mapLoader = new TmxMapLoader();
@@ -53,12 +57,16 @@ public class PlayScreen implements Screen {
 
         new WorldCreator(this);
         player = new Player(world, rayHandler);
+
+        background = new Background(new TextureRegion(new Texture(Gdx.files.internal("background.png"))), gameCamera, player);
     }
 
     public void update(float dt) {
         world.step(1 / 60f, 6, 2);
 
         rayHandler.update();
+
+        background.update(dt);
 
         player.handleInput();
         player.update();
@@ -77,17 +85,17 @@ public class PlayScreen implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        game.batch.setProjectionMatrix(gameCamera.combined);
+
+        background.render(game.batch);
         mapRenderer.render();
 
         //b2dr.render(world, gameCamera.combined);
         rayHandler.render();
 
-        game.batch.setProjectionMatrix(gameCamera.combined);
         game.batch.begin();
         player.draw(game.batch);
         game.batch.end();
-
-
     }
 
     @Override

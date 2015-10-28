@@ -65,7 +65,6 @@ public class Player extends Sprite {
             body.applyLinearImpulse(new Vector2(0, JUMP_HEIGHT), body.getWorldCenter(), true);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) && body.getLinearVelocity().x <= MAX_SPEED) {
-
             body.applyLinearImpulse(new Vector2(INPULSE, 0), body.getWorldCenter(), true);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT) && body.getLinearVelocity().x >= -MAX_SPEED) {
