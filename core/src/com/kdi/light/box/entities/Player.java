@@ -10,6 +10,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
+import com.badlogic.gdx.physics.box2d.Filter;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 import com.kdi.light.box.LightGame;
@@ -22,10 +23,14 @@ public class Player extends Sprite {
     private final float MAX_SPEED = 4f;
     private final float INPULSE = 1f;
     private final float JUMP_HEIGHT = 8f;
+
     private final int SPRITE_RADIUS = 64;
     private final int COLLISION_RADIUS = 32;
+
     private final float START_X = 2;
     private final float START_Y = 3;
+
+    private short mask = 0;
 
     public float wight;
     public float height;
@@ -49,6 +54,7 @@ public class Player extends Sprite {
         pointLight.setSoftnessLength(0.5f);
         pointLight.setXray(false);
         pointLight.attachToBody(body);
+        pointLight.setContactFilter(body.getFixtureList().first().getFilterData());
 
         sprite = new TextureRegion(getTexture(), 0, 0, SPRITE_RADIUS, SPRITE_RADIUS);
 
@@ -70,6 +76,9 @@ public class Player extends Sprite {
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT) && body.getLinearVelocity().x >= -MAX_SPEED) {
             body.applyLinearImpulse(new Vector2(-INPULSE, 0), body.getWorldCenter(), true);
         }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            switchBlocks();
+        }
     }
 
     private void createPlayerBody(World world) {
@@ -83,6 +92,34 @@ public class Player extends Sprite {
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
+        fixtureDef.filter.categoryBits = LightGame.BIT_PLAYER;
+        fixtureDef.filter.maskBits = LightGame.BIT_BLUE;
         body.createFixture(fixtureDef);
+    }
+
+    private void switchBlocks() {
+        Filter filter = body.getFixtureList().first().getFilterData();
+        short bits = filter.maskBits;
+
+        if ((bits & LightGame.BIT_BLUE) != 0) {
+            bits &= ~LightGame.BIT_BLUE;
+            bits |= LightGame.BIT_BROUN;
+        } else if ((bits & LightGame.BIT_BROUN) != 0) {
+            bits &= ~LightGame.BIT_BROUN;
+            bits |= LightGame.BIT_GREEN;
+        } else if ((bits & LightGame.BIT_GREEN) != 0) {
+            bits &= ~LightGame.BIT_GREEN;
+            bits |= LightGame.BIT_PINK;
+        } else if ((bits & LightGame.BIT_PINK) != 0) {
+            bits &= ~LightGame.BIT_PINK;
+            bits |= LightGame.BIT_YELLOW;
+        } else if ((bits & LightGame.BIT_YELLOW) != 0) {
+            bits &= ~LightGame.BIT_YELLOW;
+            bits |= LightGame.BIT_BLUE;
+        }
+
+        filter.maskBits = bits;
+        body.getFixtureList().first().setFilterData(filter);
+        pointLight.setContactFilter(filter);
     }
 }

@@ -25,6 +25,7 @@ public class WorldCreator {
             body = screen.world.createBody(bodyDef);
             shape.setAsBox(rect.getWidth() / 2 / LightGame.PPM, rect.getHeight() / 2 / LightGame.PPM);
             fixtureDef.shape = shape;
+            fixtureDef.filter.categoryBits = LightGame.BIT_BLUE;
             body.createFixture(fixtureDef);
         }
 
@@ -35,6 +36,7 @@ public class WorldCreator {
             body = screen.world.createBody(bodyDef);
             shape.setAsBox(rect.getWidth() / 2 / LightGame.PPM, rect.getHeight() / 2 / LightGame.PPM);
             fixtureDef.shape = shape;
+            fixtureDef.filter.categoryBits = LightGame.BIT_YELLOW;
             body.createFixture(fixtureDef);
         }
 
@@ -45,6 +47,7 @@ public class WorldCreator {
             body = screen.world.createBody(bodyDef);
             shape.setAsBox(rect.getWidth() / 2 / LightGame.PPM, rect.getHeight() / 2 / LightGame.PPM);
             fixtureDef.shape = shape;
+            fixtureDef.filter.categoryBits = LightGame.BIT_PINK;
             body.createFixture(fixtureDef);
         }
 
@@ -55,6 +58,7 @@ public class WorldCreator {
             body = screen.world.createBody(bodyDef);
             shape.setAsBox(rect.getWidth() / 2 / LightGame.PPM, rect.getHeight() / 2 / LightGame.PPM);
             fixtureDef.shape = shape;
+            fixtureDef.filter.categoryBits = LightGame.BIT_BROUN;
             body.createFixture(fixtureDef);
         }
 
@@ -65,6 +69,7 @@ public class WorldCreator {
             body = screen.world.createBody(bodyDef);
             shape.setAsBox(rect.getWidth() / 2 / LightGame.PPM, rect.getHeight() / 2 / LightGame.PPM);
             fixtureDef.shape = shape;
+            fixtureDef.filter.categoryBits = LightGame.BIT_GREEN;
             body.createFixture(fixtureDef);
         }
     }
