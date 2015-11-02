@@ -14,6 +14,8 @@ import com.badlogic.gdx.physics.box2d.Filter;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 import com.kdi.light.box.LightGame;
+import com.kdi.light.box.utils.Controller;
+import com.kdi.light.box.utils.WorldCreator;
 
 import box2dLight.PointLight;
 import box2dLight.RayHandler;
@@ -30,27 +32,24 @@ public class Player extends Sprite {
     private final float START_X = 2;
     private final float START_Y = 3;
 
-    private short mask = 0;
-
     public float wight;
     public float height;
 
     public Body body;
     public TextureRegion sprite;
-
     private PointLight pointLight;
-    private Color lightColor;
+    private WorldCreator worldCreator;
 
-    public Player(World world, RayHandler rayHandler) {
+    public Player(World world, RayHandler rayHandler, WorldCreator worldCreator) {
         super(new Texture(Gdx.files.internal("player.png")));
+        this.worldCreator = worldCreator;
 
         wight = SPRITE_RADIUS / LightGame.PPM;
         height = SPRITE_RADIUS / LightGame.PPM;
 
         createPlayerBody(world);
 
-        lightColor = Color.WHITE;
-        pointLight = new PointLight(rayHandler, 100, lightColor, 300 / LightGame.PPM, 0, 0);
+        pointLight = new PointLight(rayHandler, 100, Color.BLUE, 300 / LightGame.PPM, 0, 0);
         pointLight.setSoftnessLength(0.5f);
         pointLight.setXray(false);
         pointLight.attachToBody(body);
@@ -66,18 +65,19 @@ public class Player extends Sprite {
         setPosition(body.getPosition().x - getWidth() / 2, body.getPosition().y - getHeight() / 2);
     }
 
-    public void handleInput() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+    public void handleInput(Controller controller) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || (controller.jumpPressed && Gdx.input.justTouched())) {
             body.applyLinearImpulse(new Vector2(0, JUMP_HEIGHT), body.getWorldCenter(), true);
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) && body.getLinearVelocity().x <= MAX_SPEED) {
+        if ((Gdx.input.isKeyPressed(Input.Keys.RIGHT) || controller.rightPressed) && body.getLinearVelocity().x <= MAX_SPEED) {
             body.applyLinearImpulse(new Vector2(INPULSE, 0), body.getWorldCenter(), true);
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) && body.getLinearVelocity().x >= -MAX_SPEED) {
+        if ((Gdx.input.isKeyPressed(Input.Keys.LEFT) || controller.leftPressed) && body.getLinearVelocity().x >= -MAX_SPEED) {
             body.applyLinearImpulse(new Vector2(-INPULSE, 0), body.getWorldCenter(), true);
         }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || (controller.colorPressed && Gdx.input.justTouched())) {
             switchBlocks();
+            controller.updateColorButton(body.getFixtureList().first().getFilterData().maskBits);
         }
     }
 
@@ -95,6 +95,7 @@ public class Player extends Sprite {
         fixtureDef.filter.categoryBits = LightGame.BIT_PLAYER;
         fixtureDef.filter.maskBits = LightGame.BIT_BLUE;
         body.createFixture(fixtureDef);
+        worldCreator.switchBlockTiles(LightGame.BIT_BLUE);
     }
 
     private void switchBlocks() {
@@ -103,23 +104,29 @@ public class Player extends Sprite {
 
         if ((bits & LightGame.BIT_BLUE) != 0) {
             bits &= ~LightGame.BIT_BLUE;
-            bits |= LightGame.BIT_BROUN;
-        } else if ((bits & LightGame.BIT_BROUN) != 0) {
-            bits &= ~LightGame.BIT_BROUN;
+            bits |= LightGame.BIT_BROWN;
+            pointLight.setColor(Color.BROWN);
+        } else if ((bits & LightGame.BIT_BROWN) != 0) {
+            bits &= ~LightGame.BIT_BROWN;
             bits |= LightGame.BIT_GREEN;
+            pointLight.setColor(Color.GREEN);
         } else if ((bits & LightGame.BIT_GREEN) != 0) {
             bits &= ~LightGame.BIT_GREEN;
             bits |= LightGame.BIT_PINK;
+            pointLight.setColor(Color.PINK);
         } else if ((bits & LightGame.BIT_PINK) != 0) {
             bits &= ~LightGame.BIT_PINK;
             bits |= LightGame.BIT_YELLOW;
+            pointLight.setColor(Color.YELLOW);
         } else if ((bits & LightGame.BIT_YELLOW) != 0) {
             bits &= ~LightGame.BIT_YELLOW;
             bits |= LightGame.BIT_BLUE;
+            pointLight.setColor(Color.BLUE);
         }
 
         filter.maskBits = bits;
         body.getFixtureList().first().setFilterData(filter);
         pointLight.setContactFilter(filter);
+        worldCreator.switchBlockTiles(bits);
     }
 }

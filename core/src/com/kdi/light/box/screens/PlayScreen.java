@@ -1,5 +1,6 @@
 package com.kdi.light.box.screens;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
@@ -17,7 +18,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.kdi.light.box.LightGame;
 import com.kdi.light.box.entities.Player;
 import com.kdi.light.box.utils.Background;
-import com.kdi.light.box.utils.Hud;
+import com.kdi.light.box.utils.Controller;
 import com.kdi.light.box.utils.WorldCreator;
 
 import box2dLight.RayHandler;
@@ -33,10 +34,11 @@ public class PlayScreen implements Screen {
     private float tween = .07f;
 
     public World world;
+    public WorldCreator worldCreator;
+
     private Box2DDebugRenderer b2dr;
     private Player player;
     private Background background;
-    private Hud hud;
 
     private RayHandler rayHandler;
     private float ambientLight = .4f;
@@ -44,6 +46,8 @@ public class PlayScreen implements Screen {
     public TmxMapLoader mapLoader;
     public TiledMap map;
     private OrthogonalTiledMapRenderer mapRenderer;
+
+    private Controller controller;
 
     public PlayScreen(LightGame game) {
         this.game = game;
@@ -61,11 +65,12 @@ public class PlayScreen implements Screen {
         map = mapLoader.load("level1.tmx");
         mapRenderer = new OrthogonalTiledMapRenderer(map, 1 / LightGame.PPM);
 
-        new WorldCreator(this);
+        worldCreator = new WorldCreator(world, map);
 
-        player = new Player(world, rayHandler);
-        hud = new Hud(player);
+        player = new Player(world, rayHandler, worldCreator);
         background = new Background(new TextureRegion(new Texture(Gdx.files.internal("background.png"))), gameCamera, player);
+
+        controller = new Controller(game.batch);
     }
 
     public void update(float dt) {
@@ -75,7 +80,7 @@ public class PlayScreen implements Screen {
 
         background.update(dt);
 
-        player.handleInput();
+        player.handleInput(controller);
         player.update();
 
         camX += (player.body.getPosition().x - gameCamera.position.x) * tween;
@@ -108,12 +113,13 @@ public class PlayScreen implements Screen {
         player.draw(game.batch);
         game.batch.end();
 
-        hud.render(game.batch);
+        if (Gdx.app.getType() == Application.ApplicationType.Android) controller.draw();
     }
 
     @Override
     public void resize(int width, int height) {
         gameViewPort.update(width, height);
+        controller.resize(width, height);
     }
 
     @Override
