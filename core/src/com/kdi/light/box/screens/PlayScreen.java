@@ -11,14 +11,17 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.kdi.light.box.LightGame;
+import com.kdi.light.box.entities.Item;
 import com.kdi.light.box.entities.Player;
 import com.kdi.light.box.utils.Background;
 import com.kdi.light.box.utils.Controller;
+import com.kdi.light.box.utils.LightContactListener;
 import com.kdi.light.box.utils.WorldCreator;
 
 import box2dLight.RayHandler;
@@ -35,6 +38,7 @@ public class PlayScreen implements Screen {
 
     public World world;
     public WorldCreator worldCreator;
+    public LightContactListener contactListener;
 
     private Box2DDebugRenderer b2dr;
     private Player player;
@@ -55,6 +59,8 @@ public class PlayScreen implements Screen {
         gameViewPort = new FitViewport(LightGame.WIDTH / LightGame.PPM, LightGame.HEIGHT / LightGame.PPM, gameCamera);
         gameCamera.position.set(gameViewPort.getWorldWidth() / 2, gameViewPort.getWorldHeight() / 2, 0);
         world = new World(new Vector2(0, -10), true);
+        contactListener = new LightContactListener();
+        world.setContactListener(contactListener);
         b2dr = new Box2DDebugRenderer();
 
         rayHandler = new RayHandler(world);
@@ -76,12 +82,19 @@ public class PlayScreen implements Screen {
     public void update(float dt) {
         world.step(1 / 60f, 6, 2);
 
+        for (Body body : contactListener.getBodiesToRemove()) {
+            Item itemToRemove = (Item) body.getUserData();
+            worldCreator.removeItem(itemToRemove);
+            world.destroyBody(body);
+        }
+        contactListener.getBodiesToRemove().clear();
+
         rayHandler.update();
 
         background.update(dt);
 
         player.handleInput(controller);
-        player.update();
+        player.update(dt);
 
         camX += (player.body.getPosition().x - gameCamera.position.x) * tween;
         camY += (player.body.getPosition().y - gameCamera.position.y) * tween;
@@ -91,6 +104,7 @@ public class PlayScreen implements Screen {
 
         rayHandler.setCombinedMatrix(gameCamera);
         mapRenderer.setView(gameCamera);
+        worldCreator.update(dt);
     }
 
     @Override
@@ -105,6 +119,7 @@ public class PlayScreen implements Screen {
         background.render(game.batch);
 
         mapRenderer.render();
+        worldCreator.render(game.batch);
 
         //b2dr.render(world, gameCamera.combined);
         rayHandler.render();

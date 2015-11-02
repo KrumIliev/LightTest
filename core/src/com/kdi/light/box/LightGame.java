@@ -11,7 +11,7 @@ public class LightGame extends Game {
     public static final int HEIGHT = 768;
     public static final float PPM = 100;
 
-    public static final short BIT_TRANSPERANT = 1;
+    public static final short BIT_ITEM = 1;
     public static final short BIT_PLAYER = 2;
     public static final short BIT_BROWN = 4;
     public static final short BIT_BLUE = 8;

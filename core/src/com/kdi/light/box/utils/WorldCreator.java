@@ -1,5 +1,6 @@
 package com.kdi.light.box.utils;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
@@ -11,7 +12,9 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.utils.Array;
 import com.kdi.light.box.LightGame;
+import com.kdi.light.box.entities.Item;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +37,7 @@ public class WorldCreator {
     private TiledMap tiledMap;
 
     private HashMap<Short, List<Body>> allBlocks;
+    private Array<Item> items;
     private TiledMapTileLayer tileLayer;
     private TiledMapTileSet tileSet;
 
@@ -44,7 +48,18 @@ public class WorldCreator {
         tileSet = tiledMap.getTileSets().getTileSet("blocks");
 
         allBlocks = new HashMap<Short, List<Body>>();
+        items = new Array<Item>();
         createWorld();
+    }
+
+    public void render(SpriteBatch batch) {
+        batch.begin();
+        for (Item item : items) item.draw(batch);
+        batch.end();
+    }
+
+    public void update(float dt) {
+        for (Item item : items) item.update(dt);
     }
 
     public void createWorld() {
@@ -112,6 +127,27 @@ public class WorldCreator {
             body.createFixture(fixtureDef);
             addBlockToList(LightGame.BIT_GREEN, body);
         }
+
+        for (MapObject object : tiledMap.getLayers().get(6).getObjects()) {
+            float x = (Float) object.getProperties().get("x") / LightGame.PPM;
+            float y = (Float) object.getProperties().get("y") / LightGame.PPM;
+
+            items.add(new Item(AssetLoader.items, x, y, 30, world, 5, 0, 100));
+        }
+
+        for (MapObject object : tiledMap.getLayers().get(7).getObjects()) {
+            float x = (Float) object.getProperties().get("x") / LightGame.PPM;
+            float y = (Float) object.getProperties().get("y") / LightGame.PPM;
+
+            items.add(new Item(AssetLoader.items, x, y, 30, world, 5, 30, 250));
+        }
+
+        for (MapObject object : tiledMap.getLayers().get(8).getObjects()) {
+            float x = (Float) object.getProperties().get("x") / LightGame.PPM;
+            float y = (Float) object.getProperties().get("y") / LightGame.PPM;
+
+            items.add(new Item(AssetLoader.items, x, y, 30, world, 5, 60, 500));
+        }
     }
 
     private void addBlockToList(short bit, Body body) {
@@ -150,5 +186,9 @@ public class WorldCreator {
             default:
                 return isNew ? ID_BLUE : ID_TRANS_BLUE;
         }
+    }
+
+    public void removeItem (Item item) {
+        items.removeValue(item, true);
     }
 }
