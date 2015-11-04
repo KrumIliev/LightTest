@@ -5,8 +5,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
@@ -19,7 +17,8 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.kdi.light.box.LightGame;
 import com.kdi.light.box.entities.Item;
 import com.kdi.light.box.entities.Player;
-import com.kdi.light.box.utils.Background;
+import com.kdi.light.box.utils.AssetLoader;
+import com.kdi.light.box.backgrounds.BackgroundParallax;
 import com.kdi.light.box.utils.Controller;
 import com.kdi.light.box.utils.LightContactListener;
 import com.kdi.light.box.utils.WorldCreator;
@@ -42,7 +41,7 @@ public class PlayScreen implements Screen {
 
     private Box2DDebugRenderer b2dr;
     private Player player;
-    private Background background;
+    private BackgroundParallax backgroundParallax;
 
     private RayHandler rayHandler;
     private float ambientLight = .4f;
@@ -74,7 +73,7 @@ public class PlayScreen implements Screen {
         worldCreator = new WorldCreator(world, map);
 
         player = new Player(world, rayHandler, worldCreator);
-        background = new Background(new TextureRegion(new Texture(Gdx.files.internal("background.png"))), gameCamera, player);
+        backgroundParallax = new BackgroundParallax(AssetLoader.backgrounds, gameCamera, player);
 
         controller = new Controller(game.batch);
     }
@@ -91,7 +90,7 @@ public class PlayScreen implements Screen {
 
         rayHandler.update();
 
-        background.update(dt);
+        backgroundParallax.update(dt);
 
         player.handleInput(controller);
         player.update(dt);
@@ -116,7 +115,7 @@ public class PlayScreen implements Screen {
 
         game.batch.setProjectionMatrix(gameCamera.combined);
 
-        background.render(game.batch);
+        backgroundParallax.render(game.batch);
 
         mapRenderer.render();
         worldCreator.render(game.batch);

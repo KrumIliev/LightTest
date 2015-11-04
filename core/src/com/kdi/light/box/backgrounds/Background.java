@@ -1,4 +1,4 @@
-package com.kdi.light.box.utils;
+package com.kdi.light.box.backgrounds;
 
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -21,18 +21,26 @@ public class Background {
     private int numDrawX;
     private int numDrawY;
 
-    public Background(TextureRegion image, OrthographicCamera cam, Player player) {
+    private boolean scrollHorizontal;
+    private boolean scrollVertical;
+
+    private int scrollSpeed;
+
+    public Background(TextureRegion image, OrthographicCamera cam, Player player, boolean scrollVertical, boolean scrollHorizontal, int scrollSpeed) {
         this.image = image;
         this.cam = cam;
         this.player = player;
+        this.scrollHorizontal = scrollHorizontal;
+        this.scrollVertical = scrollVertical;
+        this.scrollSpeed = scrollSpeed;
 
         numDrawX = (int) ((LightGame.WIDTH / LightGame.PPM) / (image.getRegionWidth() / LightGame.PPM) + 4);
         numDrawY = (int) ((LightGame.HEIGHT / LightGame.PPM) / (image.getRegionHeight() / LightGame.PPM) + 4);
     }
 
     public void update(float dt) {
-        x -= (40 * player.body.getLinearVelocity().x / LightGame.PPM) * dt;
-        y -= (40 * player.body.getLinearVelocity().y / LightGame.PPM) * dt;
+        if (scrollHorizontal) x -= (scrollSpeed * player.body.getLinearVelocity().x / LightGame.PPM) * dt;
+        if (scrollVertical) y -= (scrollSpeed * player.body.getLinearVelocity().y / LightGame.PPM) * dt;
 
         if (x + image.getRegionWidth() / LightGame.PPM < 0) x = 0;
         if (x - image.getRegionWidth() / LightGame.PPM > 0) x = 0;
